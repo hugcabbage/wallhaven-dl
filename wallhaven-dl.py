@@ -18,8 +18,9 @@ import urllib
 import json
 
 os.makedirs('Wallhaven', exist_ok=True)
-BASEURL=""
+BASEURL=''
 cookies=dict()
+pgstart=0
 
 global APIKEY
 APIKEY = "EnterYourAPIKeyHere"
@@ -62,18 +63,48 @@ def category():
     BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY + "&categories=" +\
         ctag + '&purity=' + ptag + '&page='
 
+def toplist():
+    global BASEURL
+    print('Downloading toplist')
+    topListRange = '1M'
+    BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY + '&topRange=' +\
+        topListRange + '&sorting=toplist&page='
+    
 def latest():
     global BASEURL
     print('Downloading latest')
-    topListRange = '1M'
-    BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY + '&topRange=' +\
-    topListRange + '&sorting=toplist&page='
+    BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY +\
+        '&sorting=date_added&page='
+
+def hot():
+    global BASEURL
+    print('Downloading hot')
+    BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY +\
+        '&sorting=hot&page='
+    
+def random():
+    global BASEURL
+    print('Downloading random')
+    BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY +\
+        '&sorting=random&page='
 
 def search():
     global BASEURL
     query = input('Enter search query: ')
-    BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY + '&q=' + \
+    BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY + '&q=' +\
         urllib.parse.quote_plus(query) + '&page='
+
+def link():
+    global BASEURL, pgstart
+    link = input('Enter link(must contain \'search\'): ')
+    if 'search?' not in link:
+        print('link error')
+    else:
+        if '&page=' in link:
+            pgstart = int(link.split('&page=')[1])
+        link_body = '&' + link.split('search?')[1].split('&page=')[0]
+        BASEURL = 'https://wallhaven.cc/api/v1/search?apikey=' + APIKEY +\
+            link_body + '&page='
 
 def downloadPage(pageId, totalImage):
     url = BASEURL + str(pageId)
@@ -101,29 +132,44 @@ def downloadPage(pageId, totalImage):
             print("%s already exist - %s / %s" % (filename, currentImage , totalImage))
 
 def main():
+    global pgstart
     Choice = input('''Choose how you want to download the image:
 
     Enter "category" for downloading wallpapers from specified categories
-    Enter "latest" for downloading latest wallpapers
+    Enter "toplist" for downloading toplist wallpapers
+    Enter "latest" for downloading toplist wallpapers
+    Enter "hot" for downloading toplist wallpapers
+    Enter "random" for downloading toplist wallpapers
     Enter "search" for downloading wallpapers from search
+    Enter "link" for downloading wallpapers from search
 
     Enter choice: ''').lower()
-    while Choice not in ['category', 'latest', 'search']:
+    while Choice not in ['category', 'toplist', 'latest', 'hot', 'random', 'search', 'link']:
         if Choice != None:
             print('You entered an incorrect value.')
         choice = input('Enter choice: ')
 
     if Choice == 'category':
         category()
+    elif Choice == 'toplist':
+        toplist()
     elif Choice == 'latest':
         latest()
+    elif Choice == 'hot':
+        hot()
+    elif Choice == 'random':
+        random()
     elif Choice == 'search':
         search()
+    elif Choice == 'link':
+        link()
 
-    pgid = int(input('How Many pages you want to Download: '))
-    totalImageToDownload = str(24 * pgid)
+    if pgstart == 0:
+        pgstart = int(input('Which page you want to start downloading from: '))
+    pgnumber = int(input('How many pages you want to download: '))
+    totalImageToDownload = str(24 * pgnumber)
     print('Number of Wallpapers to Download: ' + totalImageToDownload)
-    for j in range(1, pgid + 1):
+    for j in range(pgstart, pgstart + pgnumber):
         downloadPage(j, totalImageToDownload)
 
 if __name__ == '__main__':

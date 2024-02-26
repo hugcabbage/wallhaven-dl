@@ -22,9 +22,6 @@ BASEURL=''
 cookies=dict()
 pgstart=0
 
-global APIKEY
-APIKEY = "EnterYourAPIKeyHere"
-
 def category():
     global BASEURL
     print('''
@@ -173,4 +170,6 @@ def main():
         downloadPage(j, totalImageToDownload)
 
 if __name__ == '__main__':
+    with open('api_key.txt', encoding='utf-8') as f:
+        APIKEY = f.read().strip()
     main()
